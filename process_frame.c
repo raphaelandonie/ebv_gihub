@@ -34,7 +34,7 @@ void ResetProcess()
 
 void ProcessFrame()
 {
-	char Text[] = "hallo world";
+	//char Text[] = "hallo world";
 	//initialize counters
 	if(data.ipc.state.nStepCounter == 1) {
 		//use for initialization; only done in first step
@@ -58,21 +58,21 @@ void ProcessFrame()
 }
 
 void Binarize() {
-int r, c;
-//set result buffer to zero
-memset(data.u8TempImage[THRESHOLD], 0, IMG_SIZE);
-//loop over the rows
-for(r = Border*nc; r < (nr-Border)*nc; r += nc) {
-//loop over the columns
-for(c = Border; c < (nc-Border); c++) {
-unsigned char p = data.u8TempImage[SENSORIMG][r+c];
-//if the value is smaller than threshold value
-if(p < data.ipc.state.nThreshold) {
-//set pixel value to 255 in THRESHOLD
-data.u8TempImage[THRESHOLD][r+c] = 255;
-}
-}
-}
+	int r, c;
+	//set result buffer to zero
+	memset(data.u8TempImage[THRESHOLD], 0, IMG_SIZE);
+	//loop over the rows
+	for(r = Border*nc; r < (nr-Border)*nc; r += nc) {
+		//loop over the columns
+		for(c = Border; c < (nc-Border); c++) {
+			unsigned char p = data.u8TempImage[SENSORIMG][r+c];
+			//if the value is smaller than threshold value
+			if(p < data.ipc.state.nThreshold) {
+			//set pixel value to 255 in THRESHOLD
+			data.u8TempImage[THRESHOLD][r+c] = 255;
+			}
+		}
+	}
 }
 
 
