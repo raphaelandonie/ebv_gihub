@@ -209,4 +209,44 @@ void DrawBoundingBoxes() {
 	}
 }
 
+void ChangeDetection() {
+	const int NumFgrCol = 2;
+	uint8
+	FrgCol[NumFgrCol][3] = { {160, 18, 42}, {13, 16, 116}};
+	int r, c, frg, p;
+	memset(data.u8TempImage[INDEX0], 0, IMG_SIZE);
+	memset(data.u8TempImage[BACKGROUND], 0, IMG_SIZE);
+//loop over the rows
+	for (r = 0; r < nr * nc; r += nc) {
+//loop over the columns
+		for (c = 0; c < nc; c++) {
+//loop over the different Frg colors and find smallest difference
+			int MinDif = 1 << 30;
+			int MinInd = 0;
+			for (frg = 0; frg < NumFgrCol; frg++) {
+				int Dif = 0;
+//loop over the color planes (r, g, b) and sum up the difference
+				for (p = 1; p < NUM_COLORS; p++) {
+					Dif += abs(
+							(int) data.u8TempImage[SENSORIMG][(r + c)
+									* NUM_COLORS + p] - (int) FrgCol[frg][p]);
+				}
+				if (Dif < MinDif) {
+					MinDif = Dif;
+					MinInd = frg;
+				}
+			}
+//if the difference is smaller than threshold value
+			if (MinDif < data.ipc.state.nThreshold) {
+//set pixel value to 255 in THRESHOLD image for further processing
+//(we use only the first third of the image buffer)
+				data.u8TempImage[INDEX1][(r + c)] = 255;
+//set pixel value to Frg color in BACKGROUND image for visualization
+				for (p = 0; p < NUM_COLORS; p++) {
+					data.u8TempImage[BACKGROUND][(r + c) * NUM_COLORS + p] =
+							FrgCol[MinInd][p];
+				}
+			}
+		}
+	}
 
