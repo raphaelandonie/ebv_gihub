@@ -36,6 +36,7 @@ void Erode_3x3(int InIndex, int OutIndex);
 void Dilate_3x3(int InIndex, int OutIndex);
 void DetectRegions();
 void DrawBoundingBoxes();
+void ChangeDetection();
 
 
 void ResetProcess()
