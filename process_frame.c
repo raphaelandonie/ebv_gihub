@@ -60,10 +60,10 @@ void ProcessFrame() {
 		unsigned char Threshold = OtsuThreshold(SENSORIMG);
 
 
-		Binarize(Threshold);
+		//Binarize(Threshold);
 
-		Erode_3x3(THRESHOLD, INDEX0);
-		Dilate_3x3(INDEX0, THRESHOLD);
+		//Erode_3x3(THRESHOLD, INDEX0);
+		//Dilate_3x3(INDEX0, THRESHOLD);
 
 
 		ChangeDetection();
@@ -185,6 +185,7 @@ void Dilate_3x3(int InIndex, int OutIndex)
 void DetectRegions() {
 	struct OSC_PICTURE Pic;
 	int i;
+
 
 	//set pixel value to 1 in INDEX0 because the image MUST be binary (i.e. values of 0 and 1)
 	for(i = 0; i < IMG_SIZE; i++) {
@@ -318,50 +319,43 @@ void ChangeDetection() {
 
 
 void getEveryColor(){
-	uint8 cbcrhist[2][256];
-	int highest_CB = 0;
-	int highest_CR = 0;
+	//uint8 cbcrhist[2][256];
+	//int highest_CB = 0;
+	//int highest_CR = 0;
+
+
+	int red = 0;
+	int blue = 0;
+
 
 	enum ObjColor currCol;
 
-	int o, c, p, i;
+	int o;//, c, p; //,i;
 
 	for(o = 0; o < ImgRegions.noOfObjects; o++) {
-		highest_CB = 0;
-		highest_CR = 0;
+		red = 0;
+		blue = 0;
+
 		//get pointer to root run of current object
 		struct OSC_VIS_REGIONS_RUN* currentRun = ImgRegions.objects[o].root;
 
 		if(ImgRegions.objects[o].area > MinArea) {
 
-		//loop over runs of current object
-		do {
-			//loop over pixel of current run
-			for(c = currentRun->startColumn; c <= currentRun->endColumn; c++) {
-				int r = currentRun->row;
-				//loop over color planes of pixel
-				for(p = 1; p < NUM_COLORS; p++) {
-					cbcrhist[p-1][data.u8TempImage[THRESHOLD][(r*nc+c)*NUM_COLORS+p-1]] += 1;
-				}
+		/*----------------------------------*/
 
-			}
-
-			currentRun = currentRun->next; //get net run of current object
-		}while(currentRun != NULL); //end of current object
-
-		// GET HIGHEST CB/CR VALUE
-		for(i = 0; i < 256; i++) {
-			if(cbcrhist[0][i] > cbcrhist[0][highest_CB]){
-				highest_CB = i;
-			}
-			if(cbcrhist[1][i] > cbcrhist[1][highest_CR]){
-				highest_CR = i;
-			}
+			do {
+		//loop over pixel of current run
+		for(int c = currentRun->startColumn; c <= currentRun->endColumn; c++) {
+		int r = currentRun->row;
+		//loop over color planes of pixel
+		red += data.u8TempImage[SENSORIMG][(r * nc + c) * NUM_COLORS + 2];
+		blue += data.u8TempImage[SENSORIMG][(r * nc + c) * NUM_COLORS];
 		}
-		// DECIDE COLOR
+		currentRun = currentRun->next;
+		} while(currentRun != NULL);
 
-		if(highest_CR > 128){
-			currCol = RED;
+			if (red > blue){
+		currCol=  RED; //RED Object
 		}else{
 			currCol = BLUE;
 		}
@@ -372,14 +366,14 @@ void getEveryColor(){
 									ImgRegions.objects[o].bboxRight, ImgRegions.objects[o].bboxBottom, false, currCol);
 
 					DrawLine(ImgRegions.objects[o].centroidX-SizeCross, ImgRegions.objects[o].centroidY,
-							 ImgRegions.objects[o].centroidX+SizeCross, ImgRegions.objects[o].centroidY, RED);
+							 ImgRegions.objects[o].centroidX+SizeCross, ImgRegions.objects[o].centroidY, GREEN);
 					DrawLine(ImgRegions.objects[o].centroidX, ImgRegions.objects[o].centroidY-SizeCross,
-										 ImgRegions.objects[o].centroidX, ImgRegions.objects[o].centroidY+SizeCross, RED);
+										 ImgRegions.objects[o].centroidX, ImgRegions.objects[o].centroidY+SizeCross, GREEN);
 
 
-					char Text[20];
-					sprintf(Text, "Cb = %i , Cr = %i",highest_CB,highest_CR);
-								DrawString(ImgRegions.objects[o].centroidX+SizeCross, ImgRegions.objects[o].centroidY, strlen(Text), SMALL, CYAN, Text);
+					//char Text[20];
+					//sprintf(Text, "Cb = %i , Cr = %i",highest_CB,highest_CR);
+					//			DrawString(ImgRegions.objects[o].centroidX+SizeCross, ImgRegions.objects[o].centroidY, strlen(Text), SMALL, CYAN, Text);
 
 					//printf( "Cb = %i ,\t Cr = %i \n",highest_CB,highest_CR);
 				}
