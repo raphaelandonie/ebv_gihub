@@ -327,6 +327,8 @@ void getEveryColor(){
 	int o, c, p, i;
 
 	for(o = 0; o < ImgRegions.noOfObjects; o++) {
+		highest_CB = 0;
+		highest_CR = 0;
 		//get pointer to root run of current object
 		struct OSC_VIS_REGIONS_RUN* currentRun = ImgRegions.objects[o].root;
 
@@ -339,7 +341,7 @@ void getEveryColor(){
 				int r = currentRun->row;
 				//loop over color planes of pixel
 				for(p = 1; p < NUM_COLORS; p++) {
-					cbcrhist[p-1][data.u8TempImage[THRESHOLD][(r*nc+c)*NUM_COLORS+p]]++;
+					cbcrhist[p-1][data.u8TempImage[THRESHOLD][(r*nc+c)*NUM_COLORS+p]] += 1;
 				}
 
 			}
@@ -374,10 +376,12 @@ void getEveryColor(){
 					DrawLine(ImgRegions.objects[o].centroidX, ImgRegions.objects[o].centroidY-SizeCross,
 										 ImgRegions.objects[o].centroidX, ImgRegions.objects[o].centroidY+SizeCross, RED);
 
-					//char Text[20];
-					//sprintf(Text, "Cb = %i , Cr = %i",highest_CB,highest_CR);
-					//			DrawString(ImgRegions.objects[o].centroidX+SizeCross, ImgRegions.objects[o].centroidY, strlen(Text), SMALL, CYAN, Text);
-
+					/*
+					char Text[20];
+					sprintf(Text, "Cb = %i , Cr = %i",highest_CB,highest_CR);
+								DrawString(ImgRegions.objects[o].centroidX+SizeCross, ImgRegions.objects[o].centroidY, strlen(Text), SMALL, CYAN, Text);
+					*/
+					printf( "Cb = %i ,\t Cr = %i \n",highest_CB,highest_CR);
 				}
 
 		/*-----------------------------*/
