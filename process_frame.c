@@ -329,6 +329,9 @@ void getEveryColor(){
 	for(o = 0; o < ImgRegions.noOfObjects; o++) {
 		//get pointer to root run of current object
 		struct OSC_VIS_REGIONS_RUN* currentRun = ImgRegions.objects[o].root;
+
+		if(ImgRegions.objects[o].area > MinArea) {
+
 		//loop over runs of current object
 		do {
 			//loop over pixel of current run
@@ -336,7 +339,7 @@ void getEveryColor(){
 				int r = currentRun->row;
 				//loop over color planes of pixel
 				for(p = 1; p < NUM_COLORS; p++) {
-					cbcrhist[p-1][data.u8TempImage[THRESHOLD][(r+c)*NUM_COLORS+p]]++;
+					cbcrhist[p-1][data.u8TempImage[THRESHOLD][(r*nc+c)*NUM_COLORS+p]]++;
 				}
 
 			}
@@ -346,16 +349,16 @@ void getEveryColor(){
 
 		// GET HIGHEST CB/CR VALUE
 		for(i = 0; i < 256; i++) {
-			if(cbcrhist[1][i] > highest_CB){
+			if(cbcrhist[0][i] > cbcrhist[0][highest_CB]){
 				highest_CB = i;
 			}
-			if(cbcrhist[2][i] > highest_CR){
+			if(cbcrhist[1][i] > cbcrhist[1][highest_CR]){
 				highest_CR = i;
 			}
 		}
 		// DECIDE COLOR
 
-		if(highest_CB < 128){
+		if(highest_CR > 128){
 			currCol = RED;
 		}else{
 			currCol = BLUE;
@@ -363,7 +366,6 @@ void getEveryColor(){
 
 		/*-----------------------------*/
 
-		if(ImgRegions.objects[o].area > MinArea) {
 					DrawBoundingBox(ImgRegions.objects[o].bboxLeft, ImgRegions.objects[o].bboxTop,
 									ImgRegions.objects[o].bboxRight, ImgRegions.objects[o].bboxBottom, false, currCol);
 
@@ -371,6 +373,10 @@ void getEveryColor(){
 							 ImgRegions.objects[o].centroidX+SizeCross, ImgRegions.objects[o].centroidY, RED);
 					DrawLine(ImgRegions.objects[o].centroidX, ImgRegions.objects[o].centroidY-SizeCross,
 										 ImgRegions.objects[o].centroidX, ImgRegions.objects[o].centroidY+SizeCross, RED);
+
+					//char Text[20];
+					//sprintf(Text, "Cb = %i , Cr = %i",highest_CB,highest_CR);
+					//			DrawString(ImgRegions.objects[o].centroidX+SizeCross, ImgRegions.objects[o].centroidY, strlen(Text), SMALL, CYAN, Text);
 
 				}
 
