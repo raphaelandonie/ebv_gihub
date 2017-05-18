@@ -40,6 +40,7 @@ void DetectRegions();
 void DrawBoundingBoxes();
 
 void ChangeDetection();
+void getEveryColor();
 
 void ResetProcess()
 {
@@ -68,6 +69,8 @@ void ProcessFrame() {
 		ChangeDetection();
 
 		DetectRegions();
+
+		getEveryColor();
 
 		//DrawBoundingBoxes();
 
@@ -185,7 +188,7 @@ void DetectRegions() {
 
 	//set pixel value to 1 in INDEX0 because the image MUST be binary (i.e. values of 0 and 1)
 	for(i = 0; i < IMG_SIZE; i++) {
-		data.u8TempImage[INDEX0][i] = data.u8TempImage[THRESHOLD][i] ? 1 : 0;
+		data.u8TempImage[INDEX0][i] = data.u8TempImage[INDEX1][i] ? 1 : 0;
 	}
 
 	//wrap image INDEX0 in picture struct
@@ -223,6 +226,7 @@ void ChangeDetection() {
     memset(data.u8TempImage[INDEX0], 0, IMG_SIZE);
     memset(data.u8TempImage[BACKGROUND], 0, IMG_SIZE);
     memset(data.u8TempImage[THRESHOLD], 0, IMG_SIZE);
+    memset(data.u8TempImage[INDEX1], 0, IMG_SIZE);
 
 #ifndef USE_YCBCR
     uint8 FrgCol[NumFgrCol][3] = {{11, 11, 87},{48, 29, 14}};
@@ -310,4 +314,68 @@ void ChangeDetection() {
         }
     }
 #endif
+}
+
+
+void getEveryColor(){
+	uint8 cbcrhist[2][256];
+	int highest_CB = 0;
+	int highest_CR = 0;
+
+	enum ObjColor currCol;
+
+	int o, c, p, i;
+
+	for(o = 0; o < ImgRegions.noOfObjects; o++) {
+		//get pointer to root run of current object
+		struct OSC_VIS_REGIONS_RUN* currentRun = ImgRegions.objects[o].root;
+		//loop over runs of current object
+		do {
+			//loop over pixel of current run
+			for(c = currentRun->startColumn; c <= currentRun->endColumn; c++) {
+				int r = currentRun->row;
+				//loop over color planes of pixel
+				for(p = 1; p < NUM_COLORS; p++) {
+					cbcrhist[p-1][data.u8TempImage[THRESHOLD][(r+c)*NUM_COLORS+p]]++;
+				}
+
+			}
+
+			currentRun = currentRun->next; //get net run of current object
+		}while(currentRun != NULL); //end of current object
+
+		// GET HIGHEST CB/CR VALUE
+		for(i = 0; i < 256; i++) {
+			if(cbcrhist[1][i] > highest_CB){
+				highest_CB = i;
+			}
+			if(cbcrhist[2][i] > highest_CR){
+				highest_CR = i;
+			}
+		}
+		// DECIDE COLOR
+
+		if(highest_CB < 128){
+			currCol = RED;
+		}else{
+			currCol = BLUE;
+		}
+
+		/*-----------------------------*/
+
+		if(ImgRegions.objects[o].area > MinArea) {
+					DrawBoundingBox(ImgRegions.objects[o].bboxLeft, ImgRegions.objects[o].bboxTop,
+									ImgRegions.objects[o].bboxRight, ImgRegions.objects[o].bboxBottom, false, currCol);
+
+					DrawLine(ImgRegions.objects[o].centroidX-SizeCross, ImgRegions.objects[o].centroidY,
+							 ImgRegions.objects[o].centroidX+SizeCross, ImgRegions.objects[o].centroidY, RED);
+					DrawLine(ImgRegions.objects[o].centroidX, ImgRegions.objects[o].centroidY-SizeCross,
+										 ImgRegions.objects[o].centroidX, ImgRegions.objects[o].centroidY+SizeCross, RED);
+
+				}
+
+		/*-----------------------------*/
+
+	}
+
 }
